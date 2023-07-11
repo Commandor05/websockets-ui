@@ -1,22 +1,16 @@
 import { Controller } from './Controller.js';
-import {
-  PlayerDto,
-  ResponsePlayerData,
-  ResponsePlayerPayload,
-} from '../types/playerTypes.js';
-import WebSocket from 'ws';
+import { PlayerDto, ResponsePlayerData } from '../types/playerTypes.js';
 import dataStore from '../entities/DataStore.js';
 import { Player } from '../entities/Player.js';
+import { WebSocketExtended } from '../types/wsRouteTypes.js';
+import { RoomController } from './RoomController.js';
 
 export class PlayerController extends Controller {
   constructor() {
     super();
   }
 
-  playerLogin(data: PlayerDto, ws: WebSocket) {
-    console.log('player login DATA: ', data);
-    console.log('this', this);
-    console.log('name', data.name);
+  playerLogin(ws: WebSocketExtended, data: PlayerDto) {
     let error = false;
     let errorText = '';
     const { name, password } = data;
@@ -34,22 +28,22 @@ export class PlayerController extends Controller {
       }
     }
 
+    const index = dataStore.findPlayerIndex(name);
+
+    ws.user = { name: player.name, index };
+
     const respData = {
       name,
-      index: dataStore.findPlayerIndex(name),
+      index,
       error,
       errorText,
     };
+    const rooms = dataStore.getRooms();
+    if (rooms) {
+      const roomControllre = new RoomController();
+      roomControllre.updateRoomList();
+    }
 
-    this.send(ws, this.buildPayload<ResponsePlayerData>(respData));
-  }
-
-  buildPayload<T>(respData: T) {
-    const resp: ResponsePlayerPayload = {
-      type: 'reg',
-      data: JSON.stringify(respData),
-      id: 0,
-    };
-    return JSON.stringify(resp);
+    this.send(ws, this.buildPayload<ResponsePlayerData>(respData, 'reg'));
   }
 }

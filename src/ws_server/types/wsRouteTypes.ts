@@ -1,3 +1,5 @@
+import WebSocket from 'ws';
+
 export type wsRoutetypes =
   | 'reg'
   | 'update_winners'
@@ -11,3 +13,10 @@ export type wsRoutetypes =
   | 'randomAttack'
   | 'turn'
   | 'finish';
+
+export type WebSocketExtended = WebSocket & {
+  user?: {
+    index: number;
+    name: string;
+  };
+};

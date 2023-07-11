@@ -14,9 +14,3 @@ export type ResponsePlayerData = {
   error: boolean;
   errorText: string;
 };
-
-export type ResponsePlayerPayload = {
-  type: string;
-  data: string;
-  id: number;
-};
