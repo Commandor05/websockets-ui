@@ -28,9 +28,9 @@ export class PlayerController extends Controller {
       }
     }
 
-    const index = dataStore.findPlayerIndex(name);
+    const { index, salt } = player;
 
-    ws.user = { name: player.name, index };
+    ws.user = { name, index, salt };
 
     const respData = {
       name,
@@ -40,8 +40,8 @@ export class PlayerController extends Controller {
     };
     const rooms = dataStore.getRooms();
     if (rooms) {
-      const roomControllre = new RoomController();
-      roomControllre.updateRoomList();
+      const roomControllr = new RoomController();
+      roomControllr.updateRoomList();
     }
 
     this.send(ws, this.buildPayload<ResponsePlayerData>(respData, 'reg'));

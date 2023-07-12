@@ -1,4 +1,5 @@
 import { PlayerDto, PlayerData } from '../types/playerTypes.js';
+import dataStore from './DataStore.js';
 import { Entity } from './Entity.js';
 
 import crypto from 'crypto';
@@ -6,11 +7,13 @@ import crypto from 'crypto';
 export class Player extends Entity {
   public name: string;
   public salt: string;
+  public index: number = 0;
 
   constructor({ name, password }: PlayerDto) {
     super();
     this.name = name;
     this.salt = this.generateSalt(password);
+    this.index = dataStore.getNextPlayerIndex();
   }
 
   private generateSalt(password: string): string {
@@ -21,6 +24,7 @@ export class Player extends Entity {
     return {
       name: this.name,
       salt: this.salt,
+      index: this.index,
     };
   }
 

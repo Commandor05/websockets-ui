@@ -3,6 +3,8 @@ import dataStore from '../entities/DataStore.js';
 import { Room } from '../entities/Room.js';
 import { WebSocketExtended } from '../types/wsRouteTypes.js';
 import srviceLocator from '../entities/ServiseLocator.js';
+import { GameController } from './GameController.js';
+import { BroadcastController } from './BroadcastController.js';
 
 export class RoomController extends Controller {
   constructor() {
@@ -30,13 +32,17 @@ export class RoomController extends Controller {
     if (room && user) {
       room.addUser(user);
       dataStore.updateRoomInRooms(room, indexRoom);
+      const gameController = new GameController();
+      gameController.createGame(indexRoom);
       this.updateRoomList();
     }
   }
 
   updateRoomList() {
     const rooms = dataStore.getRooms();
-    const broadcastController = srviceLocator.broadcastController;
+    const broadcastController = srviceLocator.getService<BroadcastController>(
+      'broadcastController',
+    );
     if (rooms.length > 0 && broadcastController) {
       broadcastController.sendAll(
         this.buildPayload<Room[]>(rooms, 'update_room'),

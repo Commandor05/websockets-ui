@@ -18,7 +18,7 @@ export const wsServerStart = (port: number) => {
       const type: wsRoutetypes | null = payload.type || null;
       const dataRaw: unknown = payload.data || null;
       const broadcastController = new BroadcastController(wss);
-      srviceLocator.broadcastController = broadcastController;
+      srviceLocator.addService('broadcastController', broadcastController);
       const router = new Router(routingMap);
 
       if (type !== null) {

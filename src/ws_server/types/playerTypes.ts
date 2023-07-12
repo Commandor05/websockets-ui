@@ -6,6 +6,7 @@ export type PlayerDto = {
 export type PlayerData = {
   name: string;
   salt: string;
+  index: number;
 };
 
 export type ResponsePlayerData = {
@@ -13,4 +14,8 @@ export type ResponsePlayerData = {
   index: number;
   error: boolean;
   errorText: string;
+};
+
+export type GamePlayer = Pick<PlayerData, 'name' | 'index'> & {
+  idPlayer: number;
 };

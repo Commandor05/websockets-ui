@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { PlayerData } from './playerTypes.js';
 
 export type wsRoutetypes =
   | 'reg'
@@ -15,8 +16,5 @@ export type wsRoutetypes =
   | 'finish';
 
 export type WebSocketExtended = WebSocket & {
-  user?: {
-    index: number;
-    name: string;
-  };
+  user?: PlayerData;
 };
