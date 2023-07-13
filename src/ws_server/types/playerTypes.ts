@@ -1,3 +1,5 @@
+import { Ship } from './gameTypes.js';
+
 export type PlayerDto = {
   name: string;
   password: string;
@@ -18,4 +20,5 @@ export type ResponsePlayerData = {
 
 export type GamePlayer = Pick<PlayerData, 'name' | 'index'> & {
   idPlayer: number;
+  ships?: Ship[];
 };
