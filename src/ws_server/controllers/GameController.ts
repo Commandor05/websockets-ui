@@ -1,3 +1,4 @@
+import { CloseEvent } from 'ws';
 import { BattleField } from '../entities/BatteField.js';
 import dataStore from '../entities/DataStore.js';
 import { Game } from '../entities/Game.js';
@@ -232,6 +233,24 @@ export class GameController extends Controller {
       broadcastController.sendAll(
         this.buildPayload<Winner[]>(winnersPayload, 'update_winners'),
       );
+  }
+
+  connectionClose(ws: WebSocketExtended, event: CloseEvent) {
+    console.log('connectionClose', event);
+    const user = ws.user;
+
+    if (user) {
+      const game = dataStore.getGameByPlayerName(user.name);
+      const otherPlayer = game?.gamePlayers.find(
+        (player) => player.name !== user.name,
+      );
+
+      if (game && otherPlayer) {
+        dataStore.updateWinners(otherPlayer.name);
+        this.finishGame(otherPlayer.idPlayer).updateWinners();
+        dataStore.removeGame(game.idGame);
+      }
+    }
   }
 
   randomAttack(ws: WebSocketExtended, data: TurnPayload) {

@@ -31,6 +31,16 @@ export const wsServerStart = (port: number) => {
 
       console.log('received: %s', message);
     });
+
+    ws.on('close', (event) => {
+      const router = new Router(routingMap);
+      const type = 'connection_close';
+
+      const controller = router.route(type);
+      if (controller) {
+        controller(ws, event);
+      }
+    });
   });
   console.log(`WebSocket server started on port ${port}`);
 };

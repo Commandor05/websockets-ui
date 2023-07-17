@@ -95,6 +95,16 @@ class DataStore {
     return null;
   }
 
+  getGameByPlayerName(name: string) {
+    for (const [idGame, game] of this.games.entries()) {
+      if (game.gamePlayers.find((player) => player.name === name)) {
+        return game;
+      }
+    }
+
+    return null;
+  }
+
   findPlayer(name: string) {
     return this.players.find((player) => player.name === name);
   }

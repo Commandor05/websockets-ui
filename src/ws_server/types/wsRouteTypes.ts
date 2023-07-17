@@ -13,6 +13,7 @@ export type wsRoutetypes =
   | 'attack'
   | 'randomAttack'
   | 'turn'
+  | 'connection_close'
   | 'finish';
 
 export type WebSocketExtended = WebSocket & {

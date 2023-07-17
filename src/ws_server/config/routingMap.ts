@@ -16,4 +16,8 @@ routingMap.set(
 );
 routingMap.set('add_ships', gameController.addShips.bind(gameController));
 routingMap.set('attack', gameController.attack.bind(gameController));
+routingMap.set(
+  'connection_close',
+  gameController.connectionClose.bind(gameController),
+);
 export default routingMap;
