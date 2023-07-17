@@ -26,8 +26,9 @@ export class GameController extends Controller {
   }
 
   createGame(roomIndex: number) {
-    const room = dataStore.getRooms()[roomIndex];
-    if (room.countUsersInRoom() === 2) {
+    const room = dataStore.getRoomById(roomIndex);
+    if (room && room.countUsersInRoom() === 2) {
+      dataStore.removeRoomFromRooms(roomIndex);
       const idGame = dataStore.getNextGameIndex();
       const game = new Game(idGame, room.roomUsers);
       const broadcastController = srviceLocator.getService<BroadcastController>(
@@ -128,6 +129,11 @@ export class GameController extends Controller {
     if (idPlayer === currentPlayerIndex && !isAttackBlocked) {
       const attackResult =
         game?.gamePlayers[idPlayer].battleField?.attck(position);
+
+      if (attackResult === null) {
+        return;
+      }
+
       const attackFeedbackStatus = attackResult?.status || CellStatus.miss;
       const broadcastController = srviceLocator.getService<BroadcastController>(
         'broadcastController',
@@ -188,7 +194,7 @@ export class GameController extends Controller {
         if (game?.gamePlayers[idPlayer]?.battleField?.isGameOver()) {
           dataStore.updateWinners(game.gamePlayers[idPlayer].name);
           this.finishGame(game.currentPlayerIndex).updateWinners();
-
+          dataStore.removeGame(idGame);
           return;
         }
 

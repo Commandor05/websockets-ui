@@ -65,8 +65,14 @@ export class BattleField extends Entity {
     return positions;
   }
 
-  public attck(position: Position): AttackResult {
+  public attck(position: Position): AttackResult | null {
     const key = JSON.stringify(position);
+    if (
+      this._batteleField.has(key) &&
+      this._batteleField.get(key)?.status !== CellStatus.initial
+    ) {
+      return null;
+    }
     const isShipKilled = this._makeShot(position)._isShipKilled(position);
     let killedPositions: Position[] | null = null;
     let borderPositions: Position[] | null = null;

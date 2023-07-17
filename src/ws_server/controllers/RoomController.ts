@@ -27,13 +27,14 @@ export class RoomController extends Controller {
 
   addUserToRoom(ws: WebSocketExtended, data: { indexRoom: number }) {
     const { indexRoom } = data;
-    const room = dataStore.getRooms()[indexRoom];
+    const room = dataStore.getRoomById(indexRoom);
     const user = ws.user;
     if (room && user) {
       room.addUser(user);
       dataStore.updateRoomInRooms(room, indexRoom);
       const gameController = new GameController();
       gameController.createGame(indexRoom);
+
       this.updateRoomList();
     }
   }
@@ -45,7 +46,8 @@ export class RoomController extends Controller {
     const broadcastController = srviceLocator.getService<BroadcastController>(
       'broadcastController',
     );
-    if (rooms.length > 0 && broadcastController) {
+
+    if (broadcastController) {
       broadcastController.sendAll(
         this.buildPayload<Room[]>(rooms, 'update_room'),
       );

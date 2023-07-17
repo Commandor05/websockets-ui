@@ -25,7 +25,6 @@ export const wsServerStart = (port: number) => {
         if (controller) {
           controller(ws, data);
         }
-        console.log('currentUser', ws?.user);
       } else {
         ws.send('invalid payload');
       }

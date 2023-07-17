@@ -5,7 +5,8 @@ import { Room } from './Room.js';
 
 class DataStore {
   public players: Player[] = [];
-  public rooms: Room[] = [];
+  public rooms = new Map<number, Room>();
+  private currentRoomIndex = 0;
   public games = new Map<number, Game>();
   private currentGameIndex = 0;
   private _winners = new Map<string, Winner>();
@@ -27,7 +28,7 @@ class DataStore {
   }
 
   getNextRoomIndex() {
-    return this.rooms.length;
+    return this.currentRoomIndex;
   }
 
   getNextGameIndex() {
@@ -61,19 +62,29 @@ class DataStore {
   }
 
   addRoom(room: Room) {
-    this.rooms.push(room);
+    this.rooms.set(this.currentRoomIndex, room);
+    this.currentRoomIndex++;
   }
 
   getRooms() {
-    return this.rooms;
+    return Array.from(this.rooms.values());
+  }
+
+  getRoomById(idRoom: number) {
+    if (this.rooms.has(idRoom)) {
+      return this.rooms.get(idRoom);
+    }
+
+    return null;
   }
 
   updateRoomInRooms(room: Room, roomIndex: number) {
-    this.rooms[roomIndex] = room;
+    this.rooms.set(roomIndex, room);
   }
 
   removeRoomFromRooms(roomIndex: number) {
-    this.rooms.splice(roomIndex, 1);
+    console.log('removeRoomFromRooms', roomIndex);
+    this.rooms.delete(roomIndex);
   }
 
   getGameById(idGame: number) {
