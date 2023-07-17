@@ -126,9 +126,9 @@ export class GameController extends Controller {
     const { currentPlayerIndex, isAttackBlocked } = game || {};
 
     if (idPlayer === currentPlayerIndex && !isAttackBlocked) {
-      const attackFeedbackStatus =
-        game?.gamePlayers[idPlayer].battleField?.attck(position) ||
-        CellStatus.miss;
+      const attackResult =
+        game?.gamePlayers[idPlayer].battleField?.attck(position);
+      const attackFeedbackStatus = attackResult?.status || CellStatus.miss;
       const broadcastController = srviceLocator.getService<BroadcastController>(
         'broadcastController',
       );
@@ -147,6 +147,43 @@ export class GameController extends Controller {
               'attack',
             ),
           );
+
+        if (attackFeedbackStatus === CellStatus.killed) {
+          const borderPositions = attackResult?.borderPositions;
+          const killedPositions = attackResult?.killedPositions;
+
+          borderPositions?.forEach((position) => {
+            const attackFeedbackPayload = {
+              position,
+              currentPlayer: idPlayer,
+              status: CellStatus.miss as Status,
+            };
+
+            broadcastController &&
+              broadcastController.sendAll(
+                this.buildPayload<AttackFeedbackPayload>(
+                  attackFeedbackPayload,
+                  'attack',
+                ),
+              );
+          });
+
+          killedPositions?.forEach((position) => {
+            const attackFeedbackPayload = {
+              position,
+              currentPlayer: idPlayer,
+              status: CellStatus.killed as Status,
+            };
+
+            broadcastController &&
+              broadcastController.sendAll(
+                this.buildPayload<AttackFeedbackPayload>(
+                  attackFeedbackPayload,
+                  'attack',
+                ),
+              );
+          });
+        }
 
         if (game?.gamePlayers[idPlayer]?.battleField?.isGameOver()) {
           dataStore.updateWinners(game.gamePlayers[idPlayer].name);

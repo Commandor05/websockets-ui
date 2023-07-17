@@ -69,3 +69,9 @@ export type Winner = {
   name: string;
   wins: number;
 };
+
+export type AttackResult = {
+  status: Status;
+  killedPositions?: Position[];
+  borderPositions?: Position[];
+};

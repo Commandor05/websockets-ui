@@ -1,8 +1,10 @@
 import {
+  AttackResult,
   BattleFieldCell,
   CellStatus,
   Position,
   Ship,
+  Status,
 } from '../types/gameTypes.js';
 import { Entity } from './Entity.js';
 
@@ -39,13 +41,13 @@ export class BattleField extends Entity {
   private _updateAllShipCellsStatus(
     position: Position,
     status: CellStatus,
-  ): void {
+  ): Position[] {
+    const positions: Position[] = [];
     const key = JSON.stringify(position);
     if (this._batteleField.has(key)) {
       const cellData = this._batteleField.get(key);
       const ship = cellData?.ship;
       if (ship) {
-        const shipCellsStatus: CellStatus[] = [];
         for (let i = 0; i < ship.length; i++) {
           const position = {
             x: ship.direction ? ship.position.x : ship.position.x + i,
@@ -55,19 +57,42 @@ export class BattleField extends Entity {
           if (this._batteleField.has(key)) {
             const cellData = this._batteleField.get(key);
             this._batteleField.set(key, { ...cellData, status: status });
+            positions.push(position);
           }
         }
       }
     }
+    return positions;
   }
 
-  public attck(position: Position): CellStatus {
+  public attck(position: Position): AttackResult {
     const key = JSON.stringify(position);
     const isShipKilled = this._makeShot(position)._isShipKilled(position);
+    let killedPositions: Position[] | null = null;
+    let borderPositions: Position[] | null = null;
+
     if (isShipKilled) {
-      this._updateAllShipCellsStatus(position, CellStatus.killed);
+      killedPositions = this._updateAllShipCellsStatus(
+        position,
+        CellStatus.killed,
+      );
+      borderPositions = this.shotKilledShipBorder(position);
     }
-    return this._batteleField.get(key)?.status || CellStatus.miss;
+    const result: AttackResult = {
+      status:
+        (this._batteleField.get(key)?.status as Status) ||
+        (CellStatus.miss as Status),
+    };
+
+    if (killedPositions) {
+      result.killedPositions = killedPositions;
+    }
+
+    if (borderPositions) {
+      result.borderPositions = borderPositions;
+    }
+
+    return result;
   }
 
   private _isShipKilled(position: Position): boolean {
@@ -95,6 +120,67 @@ export class BattleField extends Entity {
     }
 
     return false;
+  }
+
+  public shotKilledShipBorder(position: Position): Position[] {
+    const positions = [];
+    const key = JSON.stringify(position);
+    if (this._batteleField.has(key)) {
+      const cellData = this._batteleField.get(key);
+      const ship = cellData?.ship;
+      if (ship) {
+        const startPosition = {
+          x: ship.position.x,
+          y: ship.position.y,
+        };
+        const key = JSON.stringify(position);
+        if (
+          this._batteleField.has(key) &&
+          this._batteleField.get(key)?.status === CellStatus.killed
+        ) {
+          if (ship.direction) {
+            for (
+              let j = startPosition.y - 1;
+              j < startPosition.y + ship.length + 1;
+              j++
+            ) {
+              for (let i = startPosition.x - 1; i <= startPosition.x + 1; i++) {
+                if (j >= 0 && j < 10 && i >= 0 && i < 10) {
+                  const borderPosition = { x: i, y: j };
+                  const borderPositionKey = JSON.stringify(borderPosition);
+                  if (!this._batteleField.has(borderPositionKey)) {
+                    this._batteleField.set(borderPositionKey, {
+                      status: CellStatus.shot,
+                    });
+                    positions.push(borderPosition);
+                  }
+                }
+              }
+            }
+          } else {
+            for (
+              let j = startPosition.x - 1;
+              j < startPosition.x + ship.length + 1;
+              j++
+            ) {
+              for (let i = startPosition.y - 1; i <= startPosition.y + 1; i++) {
+                if (j >= 0 && j < 10 && i >= 0 && i < 10) {
+                  const borderPosition = { x: j, y: i };
+                  const borderPositionKey = JSON.stringify(borderPosition);
+                  if (!this._batteleField.has(borderPositionKey)) {
+                    this._batteleField.set(borderPositionKey, {
+                      status: CellStatus.miss,
+                    });
+                    positions.push(borderPosition);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return positions;
   }
 
   private _makeShot(position: Position): BattleField {
