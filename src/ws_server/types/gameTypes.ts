@@ -20,6 +20,13 @@ export type Ship = {
   type: 'small' | 'medium' | 'large' | 'huge';
 };
 
+export enum CellStatus {
+  miss = 'miss',
+  killed = 'killed',
+  shot = 'shot',
+  initial = 'initial',
+}
+
 export type StartGamePayload = {
   ships: Ship[];
   currentPlayerIndex: number;
@@ -37,10 +44,19 @@ export type AttackPayload = {
 };
 
 export type AttackFeedbackPayload = {
-  position: {
-    x: number;
-    y: number;
-  };
+  position: Position;
   currentPlayer: number;
-  status: 'miss' | 'killed' | 'shot';
+  status: Status;
+};
+
+export type Position = {
+  x: number;
+  y: number;
+};
+
+export type Status = 'miss' | 'killed' | 'shot';
+
+export type BattleFieldCell = {
+  ship?: Ship;
+  status: CellStatus;
 };

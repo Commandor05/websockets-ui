@@ -15,5 +15,5 @@ routingMap.set(
   roomController.addUserToRoom.bind(roomController),
 );
 routingMap.set('add_ships', gameController.addShips.bind(gameController));
-
+routingMap.set('attack', gameController.attack.bind(gameController));
 export default routingMap;

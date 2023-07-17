@@ -1,14 +1,12 @@
 import { WebSocketServer } from 'ws';
 import { WebSocketExtended, wsRoutetypes } from './types/wsRouteTypes.js';
 import { Router } from './config/Router.js';
-import { CurrentUser } from './entities/User.js';
 import { BroadcastController } from './controllers/BroadcastController.js';
 import routingMap from './config/routingMap.js';
 import srviceLocator from './entities/ServiseLocator.js';
 
 export const wsServerStart = (port: number) => {
   const wss = new WebSocketServer({ port });
-  const currentUser = new CurrentUser();
   wss.on('error', (err) => {
     console.log(`WSS ERROR: ${err}`);
   });

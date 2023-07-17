@@ -1,10 +1,16 @@
-import { Ship } from '../types/gameTypes.js';
+import {
+  // AttackFeedbackPayload,
+  // AttackPayload,
+  Ship,
+} from '../types/gameTypes.js';
 import { GamePlayer, PlayerData } from '../types/playerTypes.js';
 import { Entity } from './Entity.js';
-import { Player } from './Player.js';
 
 export class Game extends Entity {
   public gamePlayers: GamePlayer[] = [];
+  private _currentPlayerIndex: number = 0;
+  private _isAttackBlocked: boolean = false;
+
   constructor(
     public idGame: number,
     players: PlayerData[],
@@ -14,6 +20,27 @@ export class Game extends Entity {
       const { name, index } = player;
       return { name, index, idPlayer: i };
     });
+  }
+
+  get currentPlayerIndex(): number {
+    return this._currentPlayerIndex;
+  }
+
+  get isAttackBlocked(): boolean {
+    return this._isAttackBlocked;
+  }
+
+  bockAttack(): void {
+    this._isAttackBlocked = true;
+  }
+
+  unBockAttack(): void {
+    this._isAttackBlocked = false;
+  }
+
+  changeCurrentPlayer(): void {
+    const prevIndex = this._currentPlayerIndex;
+    this._currentPlayerIndex = prevIndex === 0 ? 1 : 0;
   }
 
   getPlayerShips(idPlayer: number): Ship[] {
@@ -29,4 +56,12 @@ export class Game extends Entity {
       (player) => player.ships && player.ships.length > 0,
     );
   }
+
+  // makeAttack(
+  //   attackPayload: Omit<AttackPayload, 'idGame'>,
+  // ): AttackFeedbackPayload | null {
+  //   const { x, y, indexPlayer } = attackPayload;
+  //   const position = { x, y };
+
+  // }
 }

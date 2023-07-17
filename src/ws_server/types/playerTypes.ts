@@ -1,3 +1,4 @@
+import { BattleField } from '../entities/BatteField.js';
 import { Ship } from './gameTypes.js';
 
 export type PlayerDto = {
@@ -21,4 +22,5 @@ export type ResponsePlayerData = {
 export type GamePlayer = Pick<PlayerData, 'name' | 'index'> & {
   idPlayer: number;
   ships?: Ship[];
+  battleField?: BattleField;
 };

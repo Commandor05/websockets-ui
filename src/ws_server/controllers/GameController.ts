@@ -1,10 +1,15 @@
+import { BattleField } from '../entities/BatteField.js';
 import dataStore from '../entities/DataStore.js';
 import { Game } from '../entities/Game.js';
 import srviceLocator from '../entities/ServiseLocator.js';
 import {
+  AttackFeedbackPayload,
+  AttackPayload,
+  CellStatus,
   GameData,
   GameDataPayload,
   StartGamePayload,
+  Status,
   TurnPayload,
 } from '../types/gameTypes.js';
 import { GamePlayer } from '../types/playerTypes.js';
@@ -50,24 +55,38 @@ export class GameController extends Controller {
   addShips(ws: WebSocketExtended, data: GameDataPayload) {
     const { gameId: idGame, indexPlayer: idPlayer } = data;
     const game = dataStore.getGameById(idGame);
-    console.log('idGame, idPlayer', idGame, idPlayer);
-    console.log('is ships set up done', game?.isShipsSetUpDone());
+
     if (game && data.ships) {
       game.setPlayerShips(idPlayer, data.ships);
       dataStore.updateGame(game);
-      console.log('is done', game.isShipsSetUpDone());
       if (game.isShipsSetUpDone()) {
         this.startGame(idGame);
       }
     }
   }
 
+  private _addBattleFieldToPlayers(game: Game): void {
+    const { gamePlayers } = game;
+    if (gamePlayers.length === 2) {
+      gamePlayers.forEach((gamePlayer) => {
+        const enmyPlayerIndex = gamePlayer.idPlayer === 0 ? 1 : 0;
+        const enemyShips = gamePlayers[enmyPlayerIndex].ships;
+        if (enemyShips) {
+          gamePlayer.battleField = new BattleField(enemyShips);
+        }
+      });
+    }
+    dataStore.updateGame(game);
+  }
+
   startGame(idGame: number) {
     const game = dataStore.getGameById(idGame);
+
     const broadcastController = srviceLocator.getService<BroadcastController>(
       'broadcastController',
     );
     if (game && game.gamePlayers) {
+      this._addBattleFieldToPlayers(game);
       const { gamePlayers } = game;
       gamePlayers.forEach((gamePlayer) => {
         const { ships, idPlayer: currentPlayerIndex } = gamePlayer;
@@ -80,19 +99,65 @@ export class GameController extends Controller {
             );
         }
       });
-      this.turn(gamePlayers[0]);
+      this.turn(game);
     }
   }
 
-  turn(player: GamePlayer) {
-    const broadcastController = srviceLocator.getService<BroadcastController>(
-      'broadcastController',
-    );
-    const payloadData = { currentPlayer: player.idPlayer };
-
-    broadcastController &&
-      broadcastController.sendAll(
-        this.buildPayload<TurnPayload>(payloadData, 'turn'),
+  turn(game: Game) {
+    if (game) {
+      const broadcastController = srviceLocator.getService<BroadcastController>(
+        'broadcastController',
       );
+      const payloadData = { currentPlayer: game.currentPlayerIndex };
+
+      broadcastController &&
+        broadcastController.sendAll(
+          this.buildPayload<TurnPayload>(payloadData, 'turn'),
+        );
+    }
+  }
+
+  attack(ws: WebSocketExtended, data: AttackPayload) {
+    const { gameId: idGame, indexPlayer: idPlayer, x, y } = data;
+    const position = { x, y };
+    const game = dataStore.getGameById(idGame);
+    const { currentPlayerIndex, isAttackBlocked } = game || {};
+
+    if (idPlayer === currentPlayerIndex && !isAttackBlocked) {
+      const attackFeedbackStatus =
+        game?.gamePlayers[idPlayer].battleField?.attck(position) ||
+        CellStatus.miss;
+      const broadcastController = srviceLocator.getService<BroadcastController>(
+        'broadcastController',
+      );
+      if (game && game.gamePlayers) {
+        game.bockAttack();
+        const attackFeedbackPayload = {
+          position,
+          currentPlayer: idPlayer,
+          status: attackFeedbackStatus as Status,
+        };
+
+        broadcastController &&
+          broadcastController.sendAll(
+            this.buildPayload<AttackFeedbackPayload>(
+              attackFeedbackPayload,
+              'attack',
+            ),
+          );
+
+        if (attackFeedbackPayload.status === CellStatus.miss) {
+          game.changeCurrentPlayer();
+        }
+
+        this.turn(game);
+        game.unBockAttack();
+        dataStore.updateGame(game);
+      }
+    }
+  }
+
+  randomAttack(ws: WebSocketExtended, data: TurnPayload) {
+    //turn
   }
 }
