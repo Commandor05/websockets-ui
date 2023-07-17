@@ -60,3 +60,12 @@ export type BattleFieldCell = {
   ship?: Ship;
   status: CellStatus;
 };
+
+export type FinishGamePayload = {
+  winPlayer: number;
+};
+
+export type Winner = {
+  name: string;
+  wins: number;
+};

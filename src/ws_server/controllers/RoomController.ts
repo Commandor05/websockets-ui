@@ -40,6 +40,8 @@ export class RoomController extends Controller {
 
   updateRoomList() {
     const rooms = dataStore.getRooms();
+    const gameController = new GameController();
+    gameController.updateWinners();
     const broadcastController = srviceLocator.getService<BroadcastController>(
       'broadcastController',
     );

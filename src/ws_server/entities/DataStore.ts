@@ -1,3 +1,4 @@
+import { Winner } from '../types/gameTypes.js';
 import { Game } from './Game.js';
 import { Player } from './Player.js';
 import { Room } from './Room.js';
@@ -7,8 +8,23 @@ class DataStore {
   public rooms: Room[] = [];
   public games = new Map<number, Game>();
   private currentGameIndex = 0;
+  private _winners = new Map<string, Winner>();
 
   constructor() {}
+
+  get winners(): Winner[] {
+    return Array.from(this._winners.values());
+  }
+
+  updateWinners(winnerName: string) {
+    if (this._winners.has(winnerName)) {
+      const winner = this._winners.get(winnerName);
+      const prevWins = winner?.wins || 0;
+      this._winners.set(winnerName, { name: winnerName, wins: prevWins + 1 });
+    } else {
+      this._winners.set(winnerName, { name: winnerName, wins: 1 });
+    }
+  }
 
   getNextRoomIndex() {
     return this.rooms.length;

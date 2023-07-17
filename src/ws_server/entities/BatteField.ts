@@ -8,6 +8,7 @@ import { Entity } from './Entity.js';
 
 export class BattleField extends Entity {
   private _batteleField = new Map<string, BattleFieldCell>();
+  private _targetCellsNumber = 0;
 
   get batteleField() {
     return this._batteleField;
@@ -30,6 +31,7 @@ export class BattleField extends Entity {
           status: CellStatus.initial,
           ship,
         });
+        this._targetCellsNumber++;
       }
     });
   }
@@ -108,5 +110,13 @@ export class BattleField extends Entity {
     }
 
     return this;
+  }
+
+  isGameOver(): boolean {
+    const killedCellsNumber = [...this._batteleField.values()].filter(
+      (cell) => cell.status === CellStatus.killed,
+    ).length;
+
+    return this._targetCellsNumber === killedCellsNumber;
   }
 }

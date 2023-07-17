@@ -6,11 +6,13 @@ import {
   AttackFeedbackPayload,
   AttackPayload,
   CellStatus,
+  FinishGamePayload,
   GameData,
   GameDataPayload,
   StartGamePayload,
   Status,
   TurnPayload,
+  Winner,
 } from '../types/gameTypes.js';
 import { GamePlayer } from '../types/playerTypes.js';
 import { WebSocketExtended } from '../types/wsRouteTypes.js';
@@ -131,7 +133,7 @@ export class GameController extends Controller {
         'broadcastController',
       );
       if (game && game.gamePlayers) {
-        game.bockAttack();
+        game.blockAttack();
         const attackFeedbackPayload = {
           position,
           currentPlayer: idPlayer,
@@ -146,15 +148,47 @@ export class GameController extends Controller {
             ),
           );
 
+        if (game?.gamePlayers[idPlayer]?.battleField?.isGameOver()) {
+          dataStore.updateWinners(game.gamePlayers[idPlayer].name);
+          this.finishGame(game.currentPlayerIndex).updateWinners();
+
+          return;
+        }
+
         if (attackFeedbackPayload.status === CellStatus.miss) {
           game.changeCurrentPlayer();
         }
 
         this.turn(game);
-        game.unBockAttack();
+        game.unBlockAttack();
         dataStore.updateGame(game);
       }
     }
+  }
+
+  finishGame(winPlayer: number): GameController {
+    const broadcastController = srviceLocator.getService<BroadcastController>(
+      'broadcastController',
+    );
+    const finishGamePayload = { winPlayer };
+
+    broadcastController &&
+      broadcastController.sendAll(
+        this.buildPayload<FinishGamePayload>(finishGamePayload, 'finish'),
+      );
+    return this;
+  }
+
+  updateWinners() {
+    const broadcastController = srviceLocator.getService<BroadcastController>(
+      'broadcastController',
+    );
+    const winnersPayload = dataStore.winners;
+
+    broadcastController &&
+      broadcastController.sendAll(
+        this.buildPayload<Winner[]>(winnersPayload, 'update_winners'),
+      );
   }
 
   randomAttack(ws: WebSocketExtended, data: TurnPayload) {

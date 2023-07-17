@@ -30,11 +30,11 @@ export class Game extends Entity {
     return this._isAttackBlocked;
   }
 
-  bockAttack(): void {
+  blockAttack(): void {
     this._isAttackBlocked = true;
   }
 
-  unBockAttack(): void {
+  unBlockAttack(): void {
     this._isAttackBlocked = false;
   }
 
