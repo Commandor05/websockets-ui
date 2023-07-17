@@ -1,0 +1,46 @@
+import { WebSocketServer } from 'ws';
+import { WebSocketExtended, wsRoutetypes } from './types/wsRouteTypes.js';
+import { Router } from './config/Router.js';
+import { BroadcastController } from './controllers/BroadcastController.js';
+import routingMap from './config/routingMap.js';
+import srviceLocator from './entities/ServiseLocator.js';
+
+export const wsServerStart = (port: number) => {
+  const wss = new WebSocketServer({ port });
+  wss.on('error', (err) => {
+    console.log(`WSS ERROR: ${err}`);
+  });
+  wss.on('connection', (ws: WebSocketExtended) => {
+    ws.on('message', (message) => {
+      const payload = JSON.parse(message as unknown as string);
+      const type: wsRoutetypes | null = payload.type || null;
+      const dataRaw: unknown = payload.data || null;
+      const broadcastController = new BroadcastController(wss);
+      srviceLocator.addService('broadcastController', broadcastController);
+      const router = new Router(routingMap);
+
+      if (type !== null) {
+        const data = JSON.parse(dataRaw as unknown as string);
+        const controller = router.route(type);
+        if (controller) {
+          controller(ws, data);
+        }
+      } else {
+        ws.send('invalid payload');
+      }
+
+      console.log('received: %s', message);
+    });
+
+    ws.on('close', (event) => {
+      const router = new Router(routingMap);
+      const type = 'connection_close';
+
+      const controller = router.route(type);
+      if (controller) {
+        controller(ws, event);
+      }
+    });
+  });
+  console.log(`WebSocket server started on port ${port}`);
+};

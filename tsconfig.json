@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "removeComments": true,
+    /* Language and Environment */
+    "target": "es2018",
+
+    /* Modules */
+    "module": "NodeNext",
+    "lib": ["ES6"],
+    "rootDir": "./",
+    "resolveJsonModule": true,
+
+    /* JavaScript Support */
+    "allowJs": true,
+    "sourceMap": true,
+
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Checking */
+    "strict": true,
+
+    /* Completeness */
+    "skipLibCheck": true
+  },
+  "include": ["./**/*"],
+  "exclude": [
+    "node_modules/**/*",
+    "front/**/*",
+    "src/http_server/**/*",
+    "built/**/*"
+    // "index.js"
+  ],
+  "lib": ["esnext"],
+  "ts-node": {
+    "esm": true
+  }
+}
